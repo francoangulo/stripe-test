@@ -1,76 +1,66 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
-import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
 
-import { CheckoutForm } from "./ui/CheckoutForm";
-import { getSubCurrency } from "./utils/utils";
+import { Product } from "../interfaces/products/Product";
+import Link from "next/link";
 
 if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
   throw new Error("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set");
 }
 
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-);
-
 export default function Home() {
-  const [amount, setAmount] = useState(50);
-  const [clientSecret, setClientSecret] = useState<string>("");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
   const getProducts = useCallback(() => {
-    axios.get("/api/products").then((res) => {
-      console.log(res.data);
+    console.log("franco will get products");
+    axios.get<Product[]>("/api/products?image=true").then((res) => {
+      setProducts(res.data);
+      setLoadingProducts(false);
     });
   }, []);
-
-  const onConfirmAmount = () => {
-    axios
-      .post("/api/payment_intent", { amount: getSubCurrency(amount) })
-      .then((res) => {
-        setClientSecret(res.data.client_secret);
-      });
-  };
 
   useEffect(() => {
     getProducts();
   }, [getProducts]);
 
+  if (loadingProducts) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-neutral-950 to-gray-800">
+        <span className="animate-spin text-white">Loading</span>
+      </main>
+    );
+  }
+
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-500 to-purple-600">
-      <div className="flex flex-col text-center space-y-4">
-        <h1 className="text-4xl md:text-6xl font-bold text-white">
-          Welcome to My App
-        </h1>
-        <p className="text-lg md:text-xl text-white/80">
-          Start building something amazing
-        </p>
-        <div className="flex items-center justify-center w-full relative p-28">
-          <span className="text-black/50 mr-2 absolute left-32">€</span>
-          <input
-            className="border-2 border-black/20 rounded-md p-2 pl-8 w-full"
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(Number(e.target.value))}
-            placeholder="Enter the amount..."
-            prefix="€"
-          />
-        </div>
-        <button onClick={onConfirmAmount}>Log amount</button>
-        <div id="checkout" className="w-full max-w-md">
-          {clientSecret && (
-            <Elements
-              stripe={stripePromise}
-              options={{
-                clientSecret,
-                appearance: { theme: "night" },
-              }}
-            >
-              <CheckoutForm amount={amount} />
-            </Elements>
-          )}
-        </div>
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-neutral-950 to-gray-800">
+      <div className="flex gap-16">
+        {products.map(({ id, name, description, price, image }) => (
+          <Link
+            target="_self"
+            href={`/product/${id}`}
+            key={id}
+            className="flex gap-2"
+          >
+            <div className="flex flex-col gap-2 bg-slate-300 rounded p-4">
+              <h1>{name}</h1>
+              <p>{description}</p>
+              <p>{price}</p>
+            </div>
+            {image && (
+              <picture className="w-24 h-24 bg-slate-300 rounded">
+                <img
+                  className="w-24 bg-slate-300 rounded"
+                  src={image.url}
+                  alt={name}
+                  width={100}
+                  height={100}
+                />
+              </picture>
+            )}
+          </Link>
+        ))}
       </div>
     </main>
   );

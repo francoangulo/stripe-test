@@ -5,6 +5,6 @@ realm-apid = 'localhost'
 apid = 'francoangulo'
 
 [service]
-apid = 'stripe-test'
+apid = 'gui'
 category = 'javascript'
 cert-style = 'acme'

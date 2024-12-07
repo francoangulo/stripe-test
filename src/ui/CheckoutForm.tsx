@@ -6,16 +6,12 @@ import {
 import React, { useState } from "react";
 
 export const CheckoutForm = ({ amount }: { amount: number }) => {
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const stripe = useStripe();
   const elements = useElements();
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    // We don't want to let default form submission happen here,
-    // which would refresh the page.
-    event.preventDefault();
-
+  const handleSubmit = async () => {
     if (!stripe || !elements) {
       // Stripe.js hasn't yet loaded.
       // Make sure to disable form submission until Stripe.js has loaded.
@@ -34,7 +30,7 @@ export const CheckoutForm = ({ amount }: { amount: number }) => {
       // This point will only be reached if there is an immediate error when
       // confirming the payment. Show error to your customer (for example, payment
       // details incomplete)
-      setErrorMessage(error.message);
+      setErrorMessage(error.message ?? "Something went wrong");
     } else {
       // Your customer will be redirected to your `return_url`. For some payment
       // methods like iDEAL, your customer will be redirected to an intermediate
@@ -44,7 +40,15 @@ export const CheckoutForm = ({ amount }: { amount: number }) => {
   return (
     <form>
       <PaymentElement />
-      <button onClick={handleSubmit}>Submit</button>
+      <div className="flex justify-center mt-4">
+        <button
+          className="text-black rounded py-4 px-8 mt-2 bg-slate-300"
+          onClick={handleSubmit}
+          type="button"
+        >
+          Submit
+        </button>
+      </div>
       {/* Show error message to your customers */}
       {errorMessage && <div>{errorMessage}</div>}
     </form>

@@ -1,3 +1,5 @@
+import { getCurrency } from "@/utils/utils";
+import Link from "next/link";
 import React from "react";
 
 export default function PaymentSuccess({
@@ -11,8 +13,11 @@ export default function PaymentSuccess({
         <h1 className="text-4xl md:text-6xl font-bold text-white">
           Thanks for your payment!
         </h1>
-        <p className="text-lg md:text-xl text-white/80">You paid {amount}€</p>
+        <p className="text-lg md:text-xl text-white/80">
+          You paid {getCurrency(parseInt(amount))}€
+        </p>
       </div>
+      <Link href="/">Go back to the home page</Link>
     </section>
   );
 }
